@@ -2,14 +2,22 @@ import numpy as np
 import scipy as sp
 from scipy.signal import tukey as tuk
 import matplotlib.pyplot as plt
-from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation, PowerSpectralDensity, rotate
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tqdm import tqdm
 import matplotlib.ticker as ticker
 
+import sys
+sys.path.insert(1,'C:\\Users\\utilisateur\\Desktop\\Clément\\L2IT\\Python\\Code\\non_stationarity\\tools')
+from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation, PowerSpectralDensity, rotate
+
+
+# --- Flag section --- #
+
 PsdPlotFlag = True
 CovPlotFlag = True
 TimeNoisePlotFlag = False
+
+# --- Main --- #
 
 fmin = 1e-4
 fmax = 8e-3
@@ -34,16 +42,17 @@ N_f = len(freq)
 
 S_n = np.empty(N_f)
 S_c = np.empty(N_f)
-
-S_n[0] = 100*PowerSpectralDensity(freq[1])[0]
+# PSD not defined at f = 0 Hz
+S_n[0] = 100*PowerSpectralDensity(freq[1])[0] # arbitrary value choosen to conserve the behaviour of instrumental PSD
 S_c[0] = PowerSpectralDensity(freq[1])[1]
 
 S_n[1:] = PowerSpectralDensity(freq[1:])[0]
 S_c[1:] = PowerSpectralDensity(freq[1:])[1]
 
 raw_PSD = S_n + S_c
-print(f'Instr_PSD(f=1e-5) = {PowerSpectralDensity(1e-5)[0]}')
-print(f'Conf_PSD(f=1e-5) = {PowerSpectralDensity(1e-5)[1]}')
+
+#print(f'Instr_PSD(f=1e-5) = {PowerSpectralDensity(1e-5)[0]}')
+#print(f'Conf_PSD(f=1e-5) = {PowerSpectralDensity(1e-5)[1]}')
 
 variance_instr_noise_f = N * S_n / (4 * delta_t)    # Calculate variance of instrumental noise, real and imaginary. (3.34) p.58
 variance_conf_noise_f = N * S_c / (4 * delta_t)     # Calculate variance of confusion background noise, real and imaginary. (3.34) p.58
@@ -51,13 +60,14 @@ variance_conf_noise_f = N * S_c / (4 * delta_t)     # Calculate variance of conf
 Instr_noise_matrix = []
 Conf_noise_matrix = []
 Non_Stat_matrix = []
+
 np.random.seed(1234)                                # Set the seed
-N_iter = 2000
+N_iter = 2000 # Number of noise realisations 
 
 #breakpoint()
 for i  in tqdm(range (0,N_iter)):
-    instr_noise_f = np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f)
-    conf_noise_f = np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f)
+    instr_noise_f = np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) # draw gaussian instr noise
+    conf_noise_f = np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) # draw gaussian conf noise
 
     Instr_noise_matrix.append(instr_noise_f)
     Conf_noise_matrix.append(conf_noise_f)
@@ -65,18 +75,20 @@ for i  in tqdm(range (0,N_iter)):
     # instr_noise_t = np.fft.irfft(instr_noise_f,N) 
     # conf_noise_t = np.fft.irfft(conf_noise_f,N)
     
-    instr_noise_t = np.fft.irfft(instr_noise_f) 
+    instr_noise_t = np.fft.irfft(instr_noise_f) # Converting back to add the modulation
     conf_noise_t = np.fft.irfft(conf_noise_f)
-    non_stat_conf_noise_t = conf_noise_t*Modulation(1,100,T,t)
+    non_stat_conf_noise_t = conf_noise_t*Modulation(1,100,T,t) # Modulation parameters need to be explored !!
 
-    non_stat_noise_t = instr_noise_t + non_stat_conf_noise_t
+    non_stat_noise_t = instr_noise_t + non_stat_conf_noise_t # Computing the non-stationary noise in the time domain
 
-    non_stat_noise_f = np.fft.rfft(non_stat_noise_t)
-    Non_Stat_matrix.append(non_stat_noise_f)
+    non_stat_noise_f = np.fft.rfft(non_stat_noise_t) # Go back to frequency domain
+
+    Non_Stat_matrix.append(non_stat_noise_f) # Compute the final non-stationary noise covariance matrix
 
 
 print(f'Time noise length = {len(instr_noise_t)}')
 print(f'Length of non-stationary noise in f domain = {len(non_stat_noise_f)}')
+
 # --- Plot noise realisation in the time domain --- #
 if TimeNoisePlotFlag == True :
 
