@@ -10,7 +10,7 @@ import sys
 sys.path.insert(1,'C:\\Users\\utilisateur\\Desktop\\Clément\\L2IT\\Python\\Code\\non_stationarity\\tools')
 from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation, PowerSpectralDensity, rotate
 
-
+# conda activate C:\Users\utilisateur\miniconda3\envs\mcmc_tutorial
 # --- Flag section --- #
 
 PsdPlotFlag = True
