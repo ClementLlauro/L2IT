@@ -12,7 +12,7 @@ PsdPlotFlag = True
 fmin = 1e-5
 fmax = 1
 
-delta_f = 1e-6
+delta_f = 1e-5
 
 freq = np.arange(fmin,fmax,delta_f)
 N_f = len(freq)
