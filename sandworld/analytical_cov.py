@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.ticker as ticker
 
 import sys
 sys.path.insert(1,'C:\\Users\\utilisateur\\Desktop\\Clément\\L2IT\\Python\\Code\\non_stationarity\\tools')
@@ -25,14 +26,6 @@ S_c = PowerSpectralDensity(freq)[1]
 
 PSD = S_n + S_c
 
-#COV_t = np.zeros((N_f,N_f))
-'''
-diag_value = A*0.25*PSD[]
-upper_diag_value = 
-lower_diag_value = 
-np.fill_diagonal(COV_t,)
-'''
-
 # --- Plot the PSD --- #
 
 if PsdPlotFlag == True :
@@ -56,6 +49,40 @@ up_diag = A*0.25*(PowerSpectralDensity(freq-delta_f)[0] + PowerSpectralDensity(f
 low_diag = A*0.25*(PowerSpectralDensity(freq+delta_f)[0] + PowerSpectralDensity(freq+delta_f)[1])[:-2]
 
 m = np.diag(np.log(diag), 0) + np.diag(np.log(low_diag), -2) + np.diag(np.log(up_diag), 2)
+#m = np.log(np.diag(diag,0) + np.diag(low_diag, -2) + np.diag(up_diag,2))
 
-plt.matshow(m)
+
+fig= plt.figure(figsize=(8,8))
+ax = fig.add_subplot(111)
+rotated = (m[::-1])
+im=ax.imshow(rotated,extent=[0,N_f,0,N_f],origin="lower")
+    
+ticks_x = ticker.FuncFormatter(lambda x, pos: '{:.2e}'.format(x*delta_f))
+ax.xaxis.set_major_formatter(ticks_x)
+ax.xaxis.tick_top()
+ticks_y = ticker.FuncFormatter(lambda x, pos: '{:.2e}'.format((N_f- x)*delta_f))
+ax.yaxis.set_major_formatter(ticks_y)
+#ax.text(0.45*N,0.56*N,f"# iterations = {N_iter}",bbox=dict(facecolor='none', edgecolor='black'))
+plt.xticks(fontsize = 6,rotation = 45)
+plt.yticks(fontsize = 6,rotation = 45)
+
+ax.set_xlabel("Frequency [Hz]")
+ax.xaxis.set_label_position('top') 
+ax.set_ylabel('Frequency [Hz]')
+ax.set_title(r"Analytical noise covariance matrix : $\log_{10}\left |\Sigma_{N}(f,f')\right |$",y = -0.1,fontsize = 15)
+plt.colorbar(im,fraction = 0.04)
+# inset axes....
+axins = ax.inset_axes([0.5, 0.5, 0.47, 0.47])
+axins.imshow(rotated,extent=[0,N_f,0,N_f],origin="lower")
+# subregion of the original image
+x1, x2, y1, y2 = (N_f/10)-20,(N_f/10)+20,(9*N_f/10)-20,(9*N_f/10)+20
+axins.set_xlim(x1, x2)
+axins.set_ylim(y1, y2)
+axins.set_xticklabels([])
+axins.set_yticklabels([])
+
+ax.indicate_inset_zoom(axins, edgecolor="black")
+
 plt.show()
+
+
