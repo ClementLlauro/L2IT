@@ -93,8 +93,8 @@ def Complex_plot(data_f):
     plt.xlabel('Real')
     plt.show()
 
-def Modulation(A,B,T,t):
-    return(A+B*np.cos((2*np.pi*t)/T))
+def Modulation(A,B,dt,t):
+    return(A+B*np.cos((2*np.pi*t*dt)))
 
 def rotate(matrix):
       temp_matrix = []

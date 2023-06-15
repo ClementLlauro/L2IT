@@ -19,7 +19,7 @@ TimeNoisePlotFlag = False
 
 # --- Main --- #
 
-fmin = 1e-4
+fmin = 2e-4
 fmax = 8e-3
 N = 8192
 
@@ -62,7 +62,7 @@ Conf_noise_matrix = []
 Non_Stat_matrix = []
 
 np.random.seed(1234)                                # Set the seed
-N_iter = 2000 # Number of noise realisations 
+N_iter = 50000 # Number of noise realisations 
 
 #breakpoint()
 for i  in tqdm(range (0,N_iter)):
@@ -77,7 +77,7 @@ for i  in tqdm(range (0,N_iter)):
     
     instr_noise_t = np.fft.irfft(instr_noise_f) # Converting back to add the modulation
     conf_noise_t = np.fft.irfft(conf_noise_f)
-    non_stat_conf_noise_t = conf_noise_t*Modulation(1,100,T,t) # Modulation parameters need to be explored !!
+    non_stat_conf_noise_t = conf_noise_t*Modulation(1,0.5,delta_f,t) # Modulation parameters need to be explored !!
 
     non_stat_noise_t = instr_noise_t + non_stat_conf_noise_t # Computing the non-stationary noise in the time domain
 
