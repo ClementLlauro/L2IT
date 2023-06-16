@@ -13,10 +13,10 @@ PsdPlotFlag = False
 A = 1
 B = 0.5
 
-fmin = 1e-4
-fmax = 1e-2
+fmin = 2e-4
+fmax = 5e-3
 
-delta_f = 1e-5
+delta_f = 1e-6
 delta_t = 1/(2*fmax)
 N = 1/(delta_f*delta_t)
 
@@ -53,8 +53,12 @@ low_diag_1 = (N/delta_t)*A*B*(PowerSpectralDensity(freq)[1])[1:]
 up_diag_2 = (N/delta_t)*((B*B)/4)*(PowerSpectralDensity(freq-delta_f)[1])[:-2]
 low_diag_2 = (N/delta_t)*((B*B)/4)*(PowerSpectralDensity(freq+delta_f)[1])[2:]
 #m = np.diag(np.log(diag), 0) + np.diag(np.log(low_diag), -2) + np.diag(np.log(up_diag), 2)
-#m = np.log(np.diag(diag,0) + np.diag(up_diag_1, 1) + np.diag(low_diag_1, -1) + np.diag(low_diag_2, -2) + np.diag(up_diag_2,2) )
-m = np.log(np.diag(stat_diag,0))
+#m =(np.diag(diag,0) + np.diag(up_diag_1, 1) + np.diag(low_diag_1, -1) + np.diag(low_diag_2, -2) + np.diag(up_diag_2,2) )
+m = np.diag(stat_diag,0) 
+noisy_perturb_matrix = abs(np.random.normal(0,1e-80,size = (N_f,N_f)))
+m = m + noisy_perturb_matrix
+m = np.log10(m)
+
 #+ np.diag(low_diag, -2) + np.diag(up_diag,2)
 fig= plt.figure(figsize=(8,8))
 ax = fig.add_subplot(111)

@@ -20,8 +20,9 @@ TimeNoisePlotFlag = False
 # --- Main --- #
 
 fmin = 2e-4
-fmax = 8e-3
+fmax = 5e-3
 N = 8192
+
 
 T = N/(2*fmax)
 print(f'T = {T}')
@@ -61,8 +62,13 @@ Instr_noise_matrix = []
 Conf_noise_matrix = []
 Non_Stat_matrix = []
 
-np.random.seed(1234)                                # Set the seed
-N_iter = 50000 # Number of noise realisations 
+np.random.seed(1234)    
+
+
+A = 1
+B = 0.5
+                            # Set the seed
+N_iter = 5000 # Number of noise realisations 
 
 #breakpoint()
 for i  in tqdm(range (0,N_iter)):
@@ -77,14 +83,15 @@ for i  in tqdm(range (0,N_iter)):
     
     instr_noise_t = np.fft.irfft(instr_noise_f) # Converting back to add the modulation
     conf_noise_t = np.fft.irfft(conf_noise_f)
-    non_stat_conf_noise_t = conf_noise_t*Modulation(1,0.5,delta_f,t) # Modulation parameters need to be explored !!
+    non_stat_conf_noise_t = conf_noise_t*Modulation(1,0.5,T,t) # Modulation parameters need to be explored !!
 
     non_stat_noise_t = instr_noise_t + non_stat_conf_noise_t # Computing the non-stationary noise in the time domain
+
 
     non_stat_noise_f = np.fft.rfft(non_stat_noise_t) # Go back to frequency domain
 
     Non_Stat_matrix.append(non_stat_noise_f) # Compute the final non-stationary noise covariance matrix
-
+    
 
 print(f'Time noise length = {len(instr_noise_t)}')
 print(f'Length of non-stationary noise in f domain = {len(non_stat_noise_f)}')
@@ -92,8 +99,8 @@ print(f'Length of non-stationary noise in f domain = {len(non_stat_noise_f)}')
 # --- Plot noise realisation in the time domain --- #
 if TimeNoisePlotFlag == True :
 
-    plt.plot(t,conf_noise_t)
-    plt.plot(t,non_stat_conf_noise_t)
+    #plt.plot(t,conf_noise_t)
+    
     #plt.plot(t,instr_noise_t)
 
     plt.show()
@@ -104,8 +111,34 @@ if CovPlotFlag == True :
 
     #Instr_COV = np.cov(Instr_noise_matrix,rowvar=False)
     #Conf_COV = np.cov(Conf_noise_matrix,rowvar=False)
-
+    Stat_COV = np.cov(Instr_noise_matrix+Conf_noise_matrix,rowvar=False)
     Non_Stat_COV = np.cov(Non_Stat_matrix,rowvar=False)
+    
+    # ---- Diagonal ratio checking ---- #
+    
+    d_s = np.diag(abs(Stat_COV))
+    d_ns = np.diag(abs(Non_Stat_COV))
+
+    stat_diag = (N/delta_t)*(1/4)*(PowerSpectralDensity(freq)[0] + PowerSpectralDensity(freq)[1])
+    non_stat_diag = (N/delta_t)*((1/2)*PowerSpectralDensity(freq)[0] + (A*A/2)*PowerSpectralDensity(freq)[1] + ((B*B)/8)*PowerSpectralDensity(freq+delta_f)[1] + ((B*B)/8)*PowerSpectralDensity(freq-delta_f)[1])
+
+    
+    plt.figure(figsize=(4,4))
+    plt.plot(freq[1:],(d_s/stat_diag)[1:])
+    plt.xlabel('Frequency [Hz]', fontsize = 15)
+    plt.ylabel('e_diag/t_diag', fontsize = 15)
+    plt.ylim((0.5,1.5))
+    plt.title('Ratio of stationary noise covariance matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
+    plt.show()
+    
+    plt.figure(figsize=(4,4))
+    plt.plot(freq[5:-5],(d_ns/non_stat_diag)[5:-5])
+    plt.xlabel('Frequency [Hz]', fontsize = 15)
+    plt.ylabel('e_diag/t_diag', fontsize = 15)
+    plt.ylim((0.5,1.5))
+    plt.title('Ratio of non-stationary noise covariance matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
+    plt.show()
+    
     '''
     fig1,axe1 = plt.subplots()
     plt.title('Instrumental noise covariance matrix')
@@ -136,7 +169,7 @@ if CovPlotFlag == True :
     '''
     fig= plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111)
-    rotated = (np.log(abs(Non_Stat_COV))[::-1])
+    rotated = (np.log(abs(Stat_COV))[::-1])
     im=ax.imshow(rotated,extent=[0,N_f,0,N_f],origin="lower")
     
     ticks_x = ticker.FuncFormatter(lambda x, pos: '{:.2e}'.format(x*delta_f))
@@ -145,13 +178,12 @@ if CovPlotFlag == True :
     ticks_y = ticker.FuncFormatter(lambda x, pos: '{:.2e}'.format((N_f- x)*delta_f))
     ax.yaxis.set_major_formatter(ticks_y)
     #ax.text(0.45*N,0.56*N,f"# iterations = {N_iter}",bbox=dict(facecolor='none', edgecolor='black'))
-    plt.xticks(fontsize = 6,rotation = 45)
-    plt.yticks(fontsize = 6,rotation = 45)
-
-    ax.set_xlabel("Frequency [Hz]")
+    plt.xticks(fontsize = 10,rotation = 45)
+    plt.yticks(fontsize = 10,rotation = 45)
+    ax.set_xlabel("Frequency [Hz]",fontsize = 15)
     ax.xaxis.set_label_position('top') 
-    ax.set_ylabel('Frequency [Hz]')
-    plt.title('Modulated Noise covariance matrix',y = -0.1,fontsize = 15)
+    ax.set_ylabel("Frequency [Hz]",fontsize = 15)
+    plt.title(r"Estimated noise covariance matrix : $\log_{10}\left |\Sigma_{N}(f,f')\right |$",y = -0.1,fontsize = 15, fontweight='bold')
     plt.colorbar(im,fraction = 0.04)
     # inset axes....
     axins = ax.inset_axes([0.5, 0.5, 0.47, 0.47])
