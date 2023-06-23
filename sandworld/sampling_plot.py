@@ -103,7 +103,7 @@ noise = np.random.normal(0,1,len(continuous_t))
 plt.plot(continuous_t,noise)
 plt.xlabel('Time (s)', fontsize=15)
 plt.ylabel('Amplitude', fontsize=15)
-plt.title('Gaussian noise',fontsize=20)
+plt.title('Stationary gaussian noise',fontsize=20)
 plt.show()
 
 plt.plot(continuous_t,noise*np.sin(continuous_t))
