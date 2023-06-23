@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ----- OVERSAMPLING ----- #
-t_obs = 5
+t_obs = 10
 # --- Continuous sine plot --- #
 
 delta_t_over = 0.20
@@ -96,3 +96,18 @@ plt.title('Undersampled signal',fontsize=20)
 plt.text(x=-0.14,y=0.2,s = r'$f_{a}$'+f' = {f_aliased} Hz',fontsize=15,color='red')
 plt.show()
 
+# --- Noise & Modulated noise --- #
+
+noise = np.random.normal(0,1,len(continuous_t))
+
+plt.plot(continuous_t,noise)
+plt.xlabel('Time (s)', fontsize=15)
+plt.ylabel('Amplitude', fontsize=15)
+plt.title('Gaussian noise',fontsize=20)
+plt.show()
+
+plt.plot(continuous_t,noise*np.sin(continuous_t))
+plt.xlabel('Time (s)', fontsize=15)
+plt.ylabel('Amplitude', fontsize=15)
+plt.title('Modulated gaussian noise',fontsize=20)
+plt.show()

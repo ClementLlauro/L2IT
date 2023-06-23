@@ -3,7 +3,9 @@ import scipy as sp
 from scipy.signal import tukey as tuk
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation, PowerSpectralDensity
+import sys
+sys.path.insert(1,'C:\\Users\\utilisateur\\Desktop\\Clément\\L2IT\\Python\\Code\\non_stationarity\\tools')
+from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation, PowerSpectralDensity, rotate
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -16,7 +18,7 @@ fit_parameters = {"half_year": [0.133,243,482,917,0.00258], "one_year" : [0.171,
 
 PsdTaperedFlag = False
 TimeNoiseFlag = False
-CovPlotFlag = True
+CovPlotFlag = False
 NoisePlotFlag = False
 PsdPlotFlag = True
 
@@ -99,14 +101,14 @@ if CovPlotFlag == True :
 
 if PsdPlotFlag == True :
 
-    plt.plot(freq,S_n,label="instrumental")
-    plt.plot(freq,S_c,label="confusion")
-    plt.plot(freq,PSD,'--',label="instrumental+confusion")
+    plt.plot(freq,S_n,'--',label=r'$S_{n_{ \rm instr}}(f)$')
+    plt.plot(freq,S_c,'--',label=r'$S_{n_{ \rm conf}}(f)$')
+    plt.plot(freq,PSD,label=r'$S_{n_{ \rm instr}}(f) + S_{n_{ \rm conf}}(f)$')
     plt.xscale('log')
     plt.ylim(1e-42)
     plt.xlabel('Frequency (Hz)')
     plt.yscale('log')
-    plt.ylabel('PSD (s)')
+    plt.ylabel(r'$S_n(f) $  (s)')
     #plt.title("PSD : Instrumental + Confusion background noises")
     plt.legend()
     plt.show()
