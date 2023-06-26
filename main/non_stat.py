@@ -14,7 +14,7 @@ from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation
 # --- Flag section --- #
 
 PsdPlotFlag = False
-CovPlotFlag = False
+CovPlotFlag = True
 TimeNoisePlotFlag = False
 
 # --- Main --- #
@@ -68,7 +68,7 @@ A = 1
 B = 0.5
 nodiag_mean_array = []
 nodiag_median = []
-N_iter = [500*i for i in range (1,41)]        
+N_iter = [2000 ]       
 for value in N_iter:
     Stat_matrix = []
     Non_Stat_matrix =[]
@@ -76,7 +76,7 @@ for value in N_iter:
     for i  in tqdm(range (0,value)):
         instr_noise_f = np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) # draw gaussian instr noise
         conf_noise_f = np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) # draw gaussian conf noise
-        Stat_matrix.append(instr_noise_f+conf_noise_f)
+        #Stat_matrix.append(instr_noise_f+conf_noise_f)
         
         
         #Instr_noise_matrix.append(instr_noise_f)
@@ -84,7 +84,7 @@ for value in N_iter:
 
         # instr_noise_t = np.fft.irfft(instr_noise_f,N) 
         # conf_noise_t = np.fft.irfft(conf_noise_f,N)
-        '''
+        
         instr_noise_t = np.fft.irfft(instr_noise_f) # Converting back to add the modulation
         conf_noise_t = np.fft.irfft(conf_noise_f)
         non_stat_conf_noise_t = conf_noise_t*Modulation(1,0.5,T,t) # Modulation parameters need to be explored !!
@@ -95,15 +95,15 @@ for value in N_iter:
         non_stat_noise_f = np.fft.rfft(non_stat_noise_t) # Go back to frequency domain
 
         Non_Stat_matrix.append(non_stat_noise_f) # Compute the final non-stationary noise covariance matrix
-        '''
+        
 
     #print(f'Time noise length = {len(instr_noise_t)}')
     #print(f'Length of non-stationary noise in f domain = {len(non_stat_noise_f)}')
 
-    Stat_COV = np.cov(Stat_matrix,rowvar=False)
-    #Non_Stat_COV = np.cov(Non_Stat_matrix,rowvar=False)
-    median = np.median(abs(Stat_COV))
-    print(f'Median value = {median}')
+    #Stat_COV = np.cov(Stat_matrix,rowvar=False)
+    Non_Stat_COV = np.cov(Non_Stat_matrix,rowvar=False)
+    #median = np.median(abs(Stat_COV))
+    #print(f'Median value = {median}')
     #d_10=np.diag(abs(Non_Stat_COV),10)
     '''
     d_0 = np.diag(abs(Non_Stat_COV))
@@ -121,10 +121,10 @@ for value in N_iter:
     
     nodiag_mean_array.append(d_10)
     '''
-    nodiag_median.append(median)
+    #nodiag_median.append(median)
     #plt.plot(freq[200:-10],d_10[200:],label=f'N_real = {value}')
 
-
+'''
 plt.plot(N_iter,nodiag_median)
 plt.xlabel('Number of noise realisations',fontsize=15)
 #plt.xlabel('Frequency [Hz]')
@@ -132,7 +132,7 @@ plt.yscale('log')
 plt.ylabel(r"$Me(\log_{10}\left |\Sigma_{N}(f,f')\right |)$",fontsize=15)
 plt.title('Median value of the stationary covariance matrix \n with respect to the number of noise realisations',fontsize=15)
 plt.show()
-
+'''
 # --- Plot noise realisation in the time domain --- #
 if TimeNoisePlotFlag == True :
 
@@ -151,14 +151,18 @@ if CovPlotFlag == True :
     
     
     # ---- Diagonal ratio checking ---- #
-    '''
-    d_s = np.diag(abs(Stat_COV))
+    
+    #d_s = np.diag(abs(Stat_COV))
     d_ns = np.diag(abs(Non_Stat_COV))
 
+    d_ns1 = np.diag(abs(Non_Stat_COV),1)
+    ns_d1 = (N/delta_t)*A*B*(PowerSpectralDensity(freq)[1])[:-1]
+    print(len(d_ns1))
+    print(len(ns_d1))
     stat_diag = (N/delta_t)*(1/4)*(PowerSpectralDensity(freq)[0] + PowerSpectralDensity(freq)[1])
     non_stat_diag = (N/delta_t)*((1/2)*PowerSpectralDensity(freq)[0] + (A*A/2)*PowerSpectralDensity(freq)[1] + ((B*B)/8)*PowerSpectralDensity(freq+delta_f)[1] + ((B*B)/8)*PowerSpectralDensity(freq-delta_f)[1])
-
-    
+     
+    '''
     plt.figure(figsize=(4,4))
     plt.plot(freq[1:],(d_s/stat_diag)[1:])
     plt.xlabel('Frequency [Hz]', fontsize = 15)
@@ -166,15 +170,15 @@ if CovPlotFlag == True :
     plt.ylim((0.5,1.5))
     plt.title('Ratio of stationary noise covariance matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
     plt.show()
-    
+    '''
     plt.figure(figsize=(4,4))
-    plt.plot(freq[5:-5],(d_ns/non_stat_diag)[5:-5])
+    plt.plot(freq[5:-6],(d_ns1/ns_d1)[5:-5])
     plt.xlabel('Frequency [Hz]', fontsize = 15)
     plt.ylabel('e_diag/t_diag', fontsize = 15)
     plt.ylim((0.5,1.5))
-    plt.title('Ratio of non-stationary noise covariance matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
+    plt.title('Ratio of non-stationary noise covariance up matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
     plt.show()
-    '''
+    
     '''
     fig1,axe1 = plt.subplots()
     plt.title('Instrumental noise covariance matrix')
