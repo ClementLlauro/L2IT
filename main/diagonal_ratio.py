@@ -14,7 +14,7 @@ from non_stationary_fun import zero_pad, FFT, freq_PSD, Complex_plot, Modulation
 # --- Flag section --- #
 
 PsdPlotFlag = False
-CovPlotFlag = True
+CovPlotFlag = False
 TimeNoisePlotFlag = False
 
 # --- Main --- #
@@ -141,91 +141,51 @@ if TimeNoisePlotFlag == True :
     #plt.plot(t,instr_noise_t)
 
     plt.show()
-
-# --- Plot the covariance matrices --- #
-
-if CovPlotFlag == True :
-
-    #Instr_COV = np.cov(Instr_noise_matrix,rowvar=False)
-    #Conf_COV = np.cov(Conf_noise_matrix,rowvar=False)
+   
     
+# ---- Main Diagonal ratio checking ---- #
     
-    # ---- Diagonal ratio checking ---- #
-    
-    #d_s = np.diag(abs(Stat_COV))
-    d_ns = np.diag(abs(Non_Stat_COV))
 
-    d_ns1 = np.diag(abs(Non_Stat_COV),1)
-    ns_d1 = (N/(2*delta_t))*A*B*(PowerSpectralDensity(freq)[1])[:-1]
+#d_s = np.diag(abs(Stat_COV))
+d_ns = np.diag(abs(Non_Stat_COV))
 
-    
-    stat_diag = (N/delta_t)*(1/4)*(PowerSpectralDensity(freq)[0] + PowerSpectralDensity(freq)[1])
-    non_stat_diag = (N/delta_t)*((1/2)*PowerSpectralDensity(freq)[0] + (A*A/2)*PowerSpectralDensity(freq)[1] + ((B*B)/8)*PowerSpectralDensity(freq+delta_f)[1] + ((B*B)/8)*PowerSpectralDensity(freq-delta_f)[1])
-     
-    '''
-    plt.figure(figsize=(4,4))
-    plt.plot(freq[1:],(d_s/stat_diag)[1:])
-    plt.xlabel('Frequency [Hz]', fontsize = 15)
-    plt.ylabel('e_diag/t_diag', fontsize = 15)
-    plt.ylim((0.5,1.5))
-    plt.title('Ratio of stationary noise covariance matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
-    plt.show()
-    '''
-    plt.figure(figsize=(4,4))
-    plt.plot(freq[2:-2],(d_ns/non_stat_diag)[2:-2])
-    plt.xlabel('Frequency [Hz]', fontsize = 15)
-    plt.ylabel('e_diag/t_diag', fontsize = 15)
-    plt.ylim((0,2))
-    plt.title('Ratio of non-stationary noise covariance up matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
-    plt.show()
-    
-    
-    # --- Plot the estimated noise covariance matrix (stationary or non-stationary) --- #
+stat_diag = (N/delta_t)*(1/4)*(PowerSpectralDensity(freq)[0] + PowerSpectralDensity(freq)[1])
+non_stat_diag = (N/delta_t)*((1/2)*PowerSpectralDensity(freq)[0] + (A*A/2)*PowerSpectralDensity(freq)[1] + ((B*B)/8)*PowerSpectralDensity(freq+delta_f)[1] + ((B*B)/8)*PowerSpectralDensity(freq-delta_f)[1])
 
-    fig= plt.figure(figsize=(8,8))
-    ax = fig.add_subplot(111)
-    rotated = (np.log(abs(Non_Stat_COV))[::-1])
-    im=ax.imshow(rotated,extent=[0,N_f,0,N_f],origin="lower")
-    
-    ticks_x = ticker.FuncFormatter(lambda x, pos: '{:.2e}'.format(x*delta_f))
-    ax.xaxis.set_major_formatter(ticks_x)
-    ax.xaxis.tick_top()
-    ticks_y = ticker.FuncFormatter(lambda x, pos: '{:.2e}'.format((N_f- x)*delta_f))
-    ax.yaxis.set_major_formatter(ticks_y)
-    #ax.text(0.45*N,0.56*N,f"# iterations = {N_iter}",bbox=dict(facecolor='none', edgecolor='black'))
-    plt.xticks(fontsize = 10,rotation = 45)
-    plt.yticks(fontsize = 10,rotation = 45)
-    ax.set_xlabel("Frequency [Hz]",fontsize = 15)
-    ax.xaxis.set_label_position('top') 
-    ax.set_ylabel("Frequency [Hz]",fontsize = 15)
-    plt.title(r"Estimated noise covariance matrix : $\log_{10}\left |\Sigma_{N}(f,f')\right |$",y = -0.1,fontsize = 15, fontweight='bold')
-    plt.colorbar(im,fraction = 0.04)
-    # inset axes....
-    axins = ax.inset_axes([0.5, 0.5, 0.47, 0.47])
-    axins.imshow(rotated,extent=[0,N_f,0,N_f],origin="lower")
-    # subregion of the original image
-    x1, x2, y1, y2 = (N_f/10)-20,(N_f/10)+20,(9*N_f/10)-20,(9*N_f/10)+20
-    axins.set_xlim(x1, x2)
-    axins.set_ylim(y1, y2)
-    axins.set_xticklabels([])
-    axins.set_yticklabels([])
+# ---- 1st upper Diagonal ratio checking ---- #
 
-    ax.indicate_inset_zoom(axins, edgecolor="black")
+d_ns1 = np.diag(abs(Non_Stat_COV),1)
+d_ns2 = np.diag(abs(Non_Stat_COV),2)
 
-    plt.show()
-# --- Plot the PSD --- #
+#ns_d1 = (N/(2*delta_t))*A*B*(PowerSpectralDensity(freq)[1])[1:]
+ns_d1 = (N/(delta_t))*(PowerSpectralDensity(freq)[1])[1:]
+ns_d2 = (N/(delta_t))*(PowerSpectralDensity(freq)[1])[2:]
 
-#breakpoint()
-if PsdPlotFlag == True :
+plt.plot(freq[1:],d_ns1/ns_d1,label='1st off-diagonal ratio')
+plt.plot(freq[2:],d_ns2/ns_d2,label='2nd off-diagonal ratio')
+plt.xlabel('Frequency [Hz]', fontsize = 15)
+plt.ylabel('e_diag/t_diag', fontsize = 15)
+plt.ylim((-0.75,1.25))
+plt.xlim((2e-4,3e-3))
+plt.text(x=2,y=2,s = r'$\frac{AB}{2}$',fontsize=15,color='red')
+plt.legend()
+plt.show()
 
-    plt.plot(freq,S_n,'*',label = 'noise')
-    plt.plot(freq,S_c,'*',label = 'confusion')
-    #plt.plot(freq,raw_PSD)
-    plt.xscale('log')
-    plt.xlabel('Frequency (Hz)')
-    plt.yscale('log')
-    plt.ylabel('Strain (m-1)')
-    plt.title("PSD : Instrumental + Confusion background noises")
-    plt.legend()
-    plt.show()
 
+'''
+plt.figure(figsize=(4,4))
+plt.plot(freq[1:],(d_s/stat_diag)[1:])
+plt.xlabel('Frequency [Hz]', fontsize = 15)
+plt.ylabel('e_diag/t_diag', fontsize = 15)
+plt.ylim((0.5,1.5))
+plt.title('Ratio of stationary noise covariance matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
+plt.show()
+
+plt.figure(figsize=(4,4))
+plt.plot(freq[2:-2],(d_ns/non_stat_diag)[2:-2])
+plt.xlabel('Frequency [Hz]', fontsize = 15)
+plt.ylabel('e_diag/t_diag', fontsize = 15)
+plt.ylim((0,2))
+plt.title('Ratio of non-stationary noise covariance up matrix diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
+plt.show()
+''' 
