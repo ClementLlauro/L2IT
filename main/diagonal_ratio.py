@@ -68,80 +68,39 @@ A = 1
 B = 0.5
 nodiag_mean_array = []
 nodiag_median = []
-N_iter = [10000 ]       
-for value in N_iter:
-    Stat_matrix = []
-    Non_Stat_matrix =[]
-    #breakpoint()
-    for i  in tqdm(range (0,value)):
-        instr_noise_f = np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) # draw gaussian instr noise
-        conf_noise_f = np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) # draw gaussian conf noise
-        #Stat_matrix.append(instr_noise_f+conf_noise_f)
+N_iter = 20000       
+
+#breakpoint()
+for i  in tqdm(range (0,N_iter)):
+    instr_noise_f = np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_instr_noise_f),N_f) # draw gaussian instr noise
+    conf_noise_f = np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) + 1j*np.random.normal(0,np.sqrt(variance_conf_noise_f),N_f) # draw gaussian conf noise
+    #Stat_matrix.append(instr_noise_f+conf_noise_f)
         
         
-        #Instr_noise_matrix.append(instr_noise_f)
-        #Conf_noise_matrix.append(conf_noise_f)
+    #Instr_noise_matrix.append(instr_noise_f)
+    #Conf_noise_matrix.append(conf_noise_f)
 
-        # instr_noise_t = np.fft.irfft(instr_noise_f,N) 
-        # conf_noise_t = np.fft.irfft(conf_noise_f,N)
+    # instr_noise_t = np.fft.irfft(instr_noise_f,N) 
+    # conf_noise_t = np.fft.irfft(conf_noise_f,N)
         
-        instr_noise_t = np.fft.irfft(instr_noise_f) # Converting back to add the modulation
-        conf_noise_t = np.fft.irfft(conf_noise_f)
-        non_stat_conf_noise_t = conf_noise_t*Modulation(1,0.5,T,t) # Modulation parameters need to be explored !!
+    instr_noise_t = np.fft.irfft(instr_noise_f) # Converting back to add the modulation
+    conf_noise_t = np.fft.irfft(conf_noise_f)
+    non_stat_conf_noise_t = conf_noise_t*Modulation(1,0.5,T,t) # Modulation parameters need to be explored !!
 
-        non_stat_noise_t = instr_noise_t + non_stat_conf_noise_t # Computing the non-stationary noise in the time domain
+    non_stat_noise_t = instr_noise_t + non_stat_conf_noise_t # Computing the non-stationary noise in the time domain
 
 
-        non_stat_noise_f = np.fft.rfft(non_stat_noise_t) # Go back to frequency domain
+    non_stat_noise_f = np.fft.rfft(non_stat_noise_t) # Go back to frequency domain
 
-        Non_Stat_matrix.append(non_stat_noise_f) # Compute the final non-stationary noise covariance matrix
+    Non_Stat_matrix.append(non_stat_noise_f) # Compute the final non-stationary noise covariance matrix
         
 
-    #print(f'Time noise length = {len(instr_noise_t)}')
-    #print(f'Length of non-stationary noise in f domain = {len(non_stat_noise_f)}')
-
-    #Stat_COV = np.cov(Stat_matrix,rowvar=False)
-    Non_Stat_COV = np.cov(Non_Stat_matrix,rowvar=False)
-    #median = np.median(abs(Stat_COV))
-    #print(f'Median value = {median}')
-    #d_10=np.diag(abs(Non_Stat_COV),10)
-    '''
-    d_0 = np.diag(abs(Non_Stat_COV))
-    d_1 = np.diag(abs(Non_Stat_COV),1)
-    d_2 = np.diag(abs(Non_Stat_COV),2)
-    d_m1 = np.diag(abs(Non_Stat_COV),-1)
-    d_m2 = np.diag(abs(Non_Stat_COV),-2)
-    D = np.append(d_0,np.append(d_1,np.append(d_2,np.append(d_m1,d_m2))))
-    print(len(D))
-    print(len(d_0)+len(d_1)+len(d_2)+len(d_m2)+len(d_m1))
-    mean_d = np.mean(D)
-    mean_COV = np.mean(abs(Non_Stat_COV))
-
-    mean_nodiag = (mean_COV-mean_d*((5*N_f-6)/(N_f*N_f-N_f)))*((N_f*N_f)/(N_f*N_f-N_f))
     
-    nodiag_mean_array.append(d_10)
-    '''
-    #nodiag_median.append(median)
-    #plt.plot(freq[200:-10],d_10[200:],label=f'N_real = {value}')
 
-'''
-plt.plot(N_iter,nodiag_median)
-plt.xlabel('Number of noise realisations',fontsize=15)
-#plt.xlabel('Frequency [Hz]')
-plt.yscale('log')
-plt.ylabel(r"$Me(\log_{10}\left |\Sigma_{N}(f,f')\right |)$",fontsize=15)
-plt.title('Median value of the stationary covariance matrix \n with respect to the number of noise realisations',fontsize=15)
-plt.show()
-'''
-# --- Plot noise realisation in the time domain --- #
-if TimeNoisePlotFlag == True :
+#Stat_COV = np.cov(Stat_matrix,rowvar=False)
+Non_Stat_COV = np.cov(Non_Stat_matrix,rowvar=False)
 
-    #plt.plot(t,conf_noise_t)
-    
-    #plt.plot(t,instr_noise_t)
 
-    plt.show()
-   
     
 # ---- Main Diagonal ratio checking ---- #
     
@@ -161,13 +120,16 @@ d_ns2 = np.diag(abs(Non_Stat_COV),2)
 ns_d1 = (N/(delta_t))*(PowerSpectralDensity(freq)[1])[1:]
 ns_d2 = (N/(delta_t))*(PowerSpectralDensity(freq)[1])[2:]
 
+plt.figure(figsize=(8,8))
 plt.plot(freq[1:],d_ns1/ns_d1,label='1st off-diagonal ratio')
 plt.plot(freq[2:],d_ns2/ns_d2,label='2nd off-diagonal ratio')
 plt.xlabel('Frequency [Hz]', fontsize = 15)
 plt.ylabel('e_diag/t_diag', fontsize = 15)
 plt.ylim((-0.75,1.25))
 plt.xlim((2e-4,3e-3))
-plt.text(x=2,y=2,s = r'$\frac{AB}{2}$',fontsize=15,color='red')
+plt.text(x=0.0031,y=1/32,s = r'$\frac{B^2}{8}$',fontsize=15,color='black')
+plt.text(x=0.0031,y=1/4,s = r'$\frac{AB}{2}$',fontsize=15,color='black')
+plt.title('Ratio of non-stationary noise covariance matrix off-diagonals \n (estimated/theoretical)',y=1.05,fontsize = 15, fontweight='bold')
 plt.legend()
 plt.show()
 

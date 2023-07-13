@@ -13,10 +13,7 @@ p.set_transform(ax.transAxes)
 p.set_clip_on(False)
 ax.add_patch(p)
 
-xvalues = np.linspace(-10,10,1000)
-yvalues = np.sin(xvalues)
 
-plt.plot(xvalues,yvalues)
 
 
 ax.text(left, bottom, 'left top',
@@ -74,5 +71,10 @@ ax.text(left, top, 'rotated\nwith newlines',
         transform=ax.transAxes)
 
 ax.set_axis_off()
+plt.show()
+xvalues = np.linspace(-10,10,1000)
+yvalues = np.sin(xvalues)
 
+plt.plot(xvalues,yvalues)
+plt.text(x=0,y=0,s='tessst')
 plt.show()
